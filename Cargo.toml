@@ -1,5 +1,5 @@
 [package]
-name = "qal-rs"
+name = "qal"
 version = "0.1.0"
 authors = ["Wilfried CERON <wilfried.ceron@rtg45.fr>"]
 
