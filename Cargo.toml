@@ -1,6 +1,9 @@
 [package]
 name = "qal"
 version = "0.1.0"
-authors = ["Wilfried CERON <wilfried.ceron@rtg45.fr>"]
+authors = ["Wilfried CERON <wilfried@ceron.fr>"]
 
 [dependencies]
+
+[dev-dependencies]
+# qalpg = { path = "../qalpg" }
