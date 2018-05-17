@@ -134,8 +134,22 @@ impl<'a> From<'a> {
 
     pub fn len(&self) -> usize {
         match self {
-            From::List(map) => map.len(),
+            From::List(tables) => tables.len(),
             From::One(_) => 1
+        }
+    }
+
+    pub fn get_list(&'a mut self) -> Result<&'a mut Vec<Table<'a>>, bool> {
+        match self {
+            From::List(ref mut tables) => Ok(tables),
+            _ => return Err(false)
+        }
+    }
+
+    pub fn get_table(&'a self) -> Result<&Table<'a>, bool> {
+        match self {
+            From::One(ref table) => Ok(table),
+            _ => return Err(false)
         }
     }
 }

@@ -1,6 +1,7 @@
 pub mod query;
 pub mod formatters;
 pub mod types;
+pub mod hr;
 
 use types::*;
 use formatters::*;

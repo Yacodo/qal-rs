@@ -111,3 +111,52 @@ impl<'q, C> fmt::Display for Query<'q, C>
         })
     }
 }
+
+#[cfg(test)]
+mod test {
+    use ::hr::Hr;
+    use ::{
+        Connector,
+        // Query,
+        // types::*;
+    };
+
+    #[test]
+    fn create_select(){
+        let c = Hr{};
+        let mut select = c.select("my_table");
+
+        assert!(select.is_select(), "should be QueryType::Select");
+        assert!(select.from(""), "should be able to add table to Select");
+    }
+
+    #[test]
+    fn create_update(){
+        let c = Hr{};
+        let mut update = c.update("my_table");
+
+        assert!(update.is_update(), "should be QueryType::Update");
+        assert!(!update.from(""), "can't add a new table to an Update");
+    }
+
+    #[test]
+    fn create_delete(){
+        let c = Hr{};
+        let mut delete = c.delete("my_table");
+
+        assert!(delete.is_delete(), "should be QueryType::Delete");
+        assert!(!delete.from(""), "can't add a new table to Delete");
+    }
+
+    #[test]
+    fn is_hr(){
+        let c = Hr{};
+        assert!(!c.hr());
+    }
+
+    #[test]
+    fn toggle_hr(){
+        let c = Hr{};
+        assert!(c.toggle_hr().is_err());
+    }
+}

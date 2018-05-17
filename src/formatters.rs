@@ -77,46 +77,44 @@ pub fn format_table(connector: &Connector, table: &Table) -> String {
 
 #[cfg(test)]
 mod test {
-    use ::Connector;
+    use ::hr::Hr;
+    // use ::Connector;
     use ::types::*;
-
-    //Connector Struct / Imp is down there
 
     #[test]
     fn format_table(){
-        let c = Fake{};
+        let c = Hr{};
         let table = Table::Name("table_name");
 
         let format_table = ::format_table(&c, &table);
-        let expect = String::from("\"table_name\"");
-        assert_eq!(format_table, expect);
+        let should_be = String::from("\"table_name\"");
+        assert_eq!(format_table, should_be);
     }
 
     #[test]
     fn format_alias(){
-        let c = Fake{};
+        let c = Hr{};
         let table = Table::Alias("table_name", "tn");
 
         let format_table = ::format_table(&c, &table);
-        let expect = String::from("\"table_name\" AS tn");
-        assert_eq!(format_table, expect);
+        let should_be = String::from("\"table_name\" AS tn");
+        assert_eq!(format_table, should_be);
     }
 
-    pub struct Fake{}
-    impl<'q> Connector<'q> for Fake{
-        fn print_select(&self, columns: String, tables: String) -> String {
-            format!("SELECT {} FROM {}", columns, tables)
-        }
+    #[test]
+    fn format_tables(){
+        let c = Hr{};
 
-        fn print_update(&self, table: String, values: String) -> String {
-            format!("UPDATE {} SET {}", table, values)
-        }
+        let mut tables = Vec::with_capacity(2);
+        tables.push(Table::Name("table"));
+        tables.push(Table::Alias("hello_world", "hw"));
 
-        fn print_delete(&self, table: String) -> String {
-            format!("DELETE FROM {}", table)
-        }
+        let from = From::List(tables);
+
+        let format_tables = ::format_tables(&c, &from);
+        let should_be = String::from("\"table\", \"hello_world\" AS hw");
+
+        assert_eq!(format_tables, should_be);
     }
-    impl<'a> ::FormatColumn<'a> for Fake {}
-    impl<'a> ::FormatTable<'a> for Fake {}
 
 }
