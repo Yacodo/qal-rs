@@ -137,3 +137,53 @@ impl<'a> Hash for From<'a> {
         };
     }
 }
+
+// TODO Finish iterator : problem with borrowing values
+// pub struct FromIterator<'f> {
+//     from: &'f From<'f>,
+//     iter: Option<HashMap<Table<'f>, ColumnList<'f>>>,
+//     one: bool
+// }
+//
+// impl<'f> IntoIterator for From<'f> {
+//     type Item = (Table<'f>, ColumnList<'f>);
+//     type IntoIter = FromIterator<'f>;
+//
+//     fn into_iter(self) -> Self::IntoIter {
+//         let iter: Option<TableList>;
+//
+//         if let From::List(map) = self {
+//             iter = Some(map);
+//         }else {
+//             iter = None;
+//         }
+//
+//         FromIterator {
+//             from: self,
+//             iter,
+//             one: match self {
+//                 From::One(_, _) => true,
+//                 _ => false
+//             }
+//         }
+//     }
+// }
+//
+// impl<'f> Iterator for FromIterator<'f> {
+//     type Item = (Table<'f>, ColumnList<'f>);
+//
+//     fn next(&mut self) -> Option<Self::Item> {
+//         if let Some(map) = self.iter {
+//             map.iter().next();
+//         }else{
+//             if self.one {
+//                 self.one = false;
+//
+//                 if let From::One(table, columns) = self.from {
+//                     return Some((*table, *columns))
+//                 }
+//             }
+//         }
+//         None
+//     }
+// }
