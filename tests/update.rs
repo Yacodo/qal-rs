@@ -10,7 +10,10 @@ use connector::Test;
 #[test]
 fn empty(){
     let c = Test{};
-    assert_eq!(c.update("my_table").to_string(), "UPDATE my_table SET 1=1");
+    assert_eq!(
+        c.update("my_table").to_string(),
+        "UPDATE \"my_table\" SET 1=1"
+    );
 }
 
 #[test]

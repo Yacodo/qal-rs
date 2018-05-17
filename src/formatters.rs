@@ -16,19 +16,7 @@ pub trait FormatColumn<'a> {
     }
 
     fn list(&self, columns: Vec<String>)       -> String where Self: Connector<'a> {
-        let mut columns: String = columns.join(
-            if self.hr() {
-                ", "
-            }else{
-                ",\r\n\t"
-            }
-        );
-
-        if self.hr() {
-            columns.insert_str(0, "`\r")
-        }
-
-        columns
+        columns.join(", ")
     }
 }
 
@@ -44,26 +32,14 @@ pub trait FormatTable<'a> {
 
 
     fn list(&self, tables: Vec<String>)         -> String where Self: Connector<'a> {
-        let mut tables: String = tables.join(
-            if self.hr() {
-                ", "
-            }else{
-                ",\r\n\t"
-            }
-        );
-
-        if self.hr() {
-            tables.insert_str(0, "`\r")
-        }
-
-        tables
+        tables.join(", ")
     }
 }
 
 pub fn format_columns<'a>(connector: &Connector, from: &From<'a>) -> String {
     let result = String::new();
 
-    
+
 
     result
 }
@@ -72,28 +48,75 @@ pub fn format_tables<'a>(connector: &Connector, from: &From<'a>) -> String {
     let mut list = Vec::with_capacity(from.len());
 
     match from {
-        From::List(map) => {
-            for (table, _) in map.iter() {
-                list.push(format_table(connector, table));
+        From::List(tables) => {
+            for table in tables {
+                list.push(format_table(connector, &table));
             }
         },
-        From::One(table, _) => {
-            list.push(format_table(connector, table));
-        }
+        From::One(table) => list.push(format_table(connector, &table))
     };
 
     FormatTable::list(connector, list)
 }
 
-pub fn format_table<'a>(connector: &Connector, table: &Table) -> String {
+
+pub fn format_table(connector: &Connector, table: &Table) -> String {
 
     match table {
+        //Quote table without alias
         Table::Name(table) => FormatTable::quote(connector, table),
+        //Quote table with alias
         Table::Alias(table, alias) => FormatTable::alias(
             connector,
             &FormatTable::quote(connector, table),
             alias
         )
     }
+
+}
+
+#[cfg(test)]
+mod test {
+    use ::Connector;
+    use ::types::*;
+
+    //Connector Struct / Imp is down there
+
+    #[test]
+    fn format_table(){
+        let c = Fake{};
+        let table = Table::Name("table_name");
+
+        let format_table = ::format_table(&c, &table);
+        let expect = String::from("\"table_name\"");
+        assert_eq!(format_table, expect);
+    }
+
+    #[test]
+    fn format_alias(){
+        let c = Fake{};
+        let table = Table::Alias("table_name", "tn");
+
+        let format_table = ::format_table(&c, &table);
+        let expect = String::from("\"table_name\" AS tn");
+        assert_eq!(format_table, expect);
+    }
+
+    pub struct Fake{}
+    impl<'q> Connector<'q> for Fake{
+        fn print_select(&self, columns: String, tables: String) -> String {
+            format!("SELECT {} FROM {}", columns, tables)
+        }
+
+        fn print_update(&self, table: String, values: String) -> String {
+            format!("UPDATE {} SET {}", table, values)
+        }
+
+        fn print_delete(&self, table: String) -> String {
+            format!("DELETE FROM {}", table)
+        }
+    }
+    impl<'a> ::FormatColumn<'a> for Fake {}
+    impl<'a> ::FormatTable<'a> for Fake {}
 
 }

@@ -1,6 +1,7 @@
 use std::{
     cmp,
-    iter,
+    convert,
+    //iter,
     collections::HashMap,
     hash::{Hash, Hasher},
 };
@@ -55,6 +56,18 @@ impl<'a> cmp::PartialEq for Table<'a> {
 
 impl<'a> cmp::Eq for Table<'a> {}
 
+// impl<'a> convert::From<&'static str> for Table<'a> {
+//     fn from(table: &'static str) -> Self {
+//         Table::Name(table)
+//     }
+// }
+
+impl<'a> convert::Into<Table<'a>> for &'static str {
+    fn into(self) -> Table<'a> {
+        Table::Name(self)
+    }
+}
+
 /// # Column
 
 #[derive(Debug, Hash)]
@@ -90,33 +103,39 @@ impl<'a> cmp::PartialEq for Column<'a> {
 
 impl<'a> cmp::Eq for Column<'a> {}
 
+impl<'a> convert::From<&'static str> for Column<'a> {
+    fn from(table: &'static str) -> Self {
+        Column::Name(table)
+    }
+}
+
 /// # TableRef
 pub type ColumnList<'a> = Vec<Column<'a>>;
 pub type TableList<'a> = HashMap<Table<'a>, ColumnList<'a>>;
 
 #[derive(Debug)]
 pub enum From<'a> {
-    List(TableList<'a>),
-    One(Table<'a>, ColumnList<'a>)
+    List(Vec<Table<'a>>),
+    One(Table<'a>)
 }
 
 impl<'a> From<'a> {
     pub fn new_list() -> Self {
-        From::List(HashMap::new())
+        From::List(Vec::new())
     }
 
-    pub fn only_one(table: &'a str) -> Self {
-        From::One(Table::Name(table), From::columns_list())
+    pub fn only_one(table: Table<'a>) -> Self {
+        From::One(table)
     }
 
-    pub fn columns_list() -> ColumnList<'a> {
-        Vec::<Column<'a>>::new()
-    }
+    // pub fn columns_list() -> ColumnList<'a> {
+    //     Vec::<Column<'a>>::new()
+    // }
 
     pub fn len(&self) -> usize {
         match self {
             From::List(map) => map.len(),
-            From::One(_, _) => 1
+            From::One(_) => 1
         }
     }
 }
@@ -124,66 +143,14 @@ impl<'a> From<'a> {
 impl<'a> Hash for From<'a> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
-            From::List(map) => {
-                for (table, columns) in map.iter() {
+            From::List(tables) => {
+                for table in tables {
                     table.hash(state);
-                    columns.hash(state);
                 }
             },
-            From::One(table, columns) => {
+            From::One(table) => {
                 table.hash(state);
-                columns.hash(state);
             }
         };
     }
 }
-
-// TODO Finish iterator : problem with borrowing values
-// pub struct FromIterator<'f> {
-//     from: &'f From<'f>,
-//     iter: Option<HashMap<Table<'f>, ColumnList<'f>>>,
-//     one: bool
-// }
-//
-// impl<'f> IntoIterator for From<'f> {
-//     type Item = (Table<'f>, ColumnList<'f>);
-//     type IntoIter = FromIterator<'f>;
-//
-//     fn into_iter(self) -> Self::IntoIter {
-//         let iter: Option<TableList>;
-//
-//         if let From::List(map) = self {
-//             iter = Some(map);
-//         }else {
-//             iter = None;
-//         }
-//
-//         FromIterator {
-//             from: self,
-//             iter,
-//             one: match self {
-//                 From::One(_, _) => true,
-//                 _ => false
-//             }
-//         }
-//     }
-// }
-//
-// impl<'f> Iterator for FromIterator<'f> {
-//     type Item = (Table<'f>, ColumnList<'f>);
-//
-//     fn next(&mut self) -> Option<Self::Item> {
-//         if let Some(map) = self.iter {
-//             map.iter().next();
-//         }else{
-//             if self.one {
-//                 self.one = false;
-//
-//                 if let From::One(table, columns) = self.from {
-//                     return Some((*table, *columns))
-//                 }
-//             }
-//         }
-//         None
-//     }
-// }

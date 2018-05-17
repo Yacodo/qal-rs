@@ -10,7 +10,7 @@ use qal::types::*;
 #[test]
 fn delete_all(){
     let c = Test{};
-    assert_eq!(c.delete("my_table").to_string(), "DELETE FROM my_table");
+    assert_eq!(c.delete("my_table").to_string(), "DELETE FROM \"my_table\"");
 }
 
 #[test]

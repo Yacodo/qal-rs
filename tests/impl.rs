@@ -1,6 +1,8 @@
 extern crate qal;
 
-use qal::Connector;
+use qal::{
+    Connector
+};
 
 //standalone connector
 mod connector;
@@ -30,7 +32,7 @@ fn new_delete(){
 #[test]
 fn is_hr(){
     let c = Test{};
-    assert!(c.hr());
+    assert!(!c.hr());
 }
 
 #[test]

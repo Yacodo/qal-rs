@@ -7,36 +7,35 @@ impl<'q, C> Query<'q, C>
     where C: 'q + Connector<'q> {
 
     /// Create a new Select Query
-    pub fn select(connector: &'q C, table: &'q str) -> Query<'q, C> {
-        let query = Query::<C> {
+    pub fn select<T: Into<Table<'q>>>(connector: &'q C, table: T) -> Query<'q, C> {
+        let mut query = Query::<C> {
             query_type: QueryType::Select,
             connector: connector,
-            table,
             tables: From::new_list()
         };
+
+        query.from(table.into());
 
         query
     }
 
     /// Create a new Update Query
-    pub fn update(connector: &'q C, table: &'q str) -> Query<'q, C> {
-        let query = Query::<C> {
+    pub fn update<T: Into<Table<'q>>>(connector: &'q C, table: T) -> Query<'q, C> {
+        let mut query = Query::<C> {
             query_type: QueryType::Update,
             connector: connector,
-            table,
-            tables: From::only_one(table)
+            tables: From::only_one(table.into())
         };
 
         query
     }
 
     /// Create a new Delete Query
-    pub fn delete(connector: &'q C, table: &'q str) -> Query<'q, C> {
-        let query = Query::<C> {
+    pub fn delete<T: Into<Table<'q>>>(connector: &'q C, table: T) -> Query<'q, C> {
+        let mut query = Query::<C> {
             query_type: QueryType::Delete,
             connector: connector,
-            table,
-            tables: From::only_one(table)
+            tables: From::only_one(table.into())
         };
 
         query
@@ -65,21 +64,37 @@ impl<'q, C> Query<'q, C>
         &self.tables
     }
 
+    pub fn from<T: Into<Table<'q>>>(&mut self, table: T) -> bool {
+        match self.tables {
+            From::List(ref mut map) => {
+                (*map).push(table.into());
+            },
+            _ => return false
+        }
+
+        true
+    }
+
     /// # Formatting
 
     fn format_select(&self) -> String {
         self.connector.print_select(
-            "*",
-            self.table
+            String::from("*"),
+            formatters::format_tables(self.connector, &self.tables)
         )
     }
 
     fn format_update(&self) -> String {
-        self.connector.print_update(self.table, "1=1")
+        self.connector.print_update(
+            formatters::format_tables(self.connector, &self.tables),
+            String::from("1=1")
+        )
     }
 
     fn format_delete(&self) -> String {
-        self.connector.print_delete(self.table)
+        self.connector.print_delete(
+            formatters::format_tables(self.connector, &self.tables)
+        )
     }
 
 }
@@ -93,7 +108,6 @@ impl<'q, C> fmt::Display for Query<'q, C>
             Select => self.format_select(),
             Update => self.format_update(),
             Delete => self.format_delete(),
-            _ => String::from("")
         })
     }
 }
