@@ -1,4 +1,8 @@
-use std::fmt;
+use std::{
+    fmt,
+    collections::HashMap,
+    rc::Rc
+};
 
 use ::*;
 use types::*;
@@ -11,10 +15,14 @@ impl<'q, C> Query<'q, C>
         let mut query = Query::<C> {
             query_type: QueryType::Select,
             connector: connector,
-            tables: From::new_list()
+
+            tables: From::new_list(),
+            columns: Some(HashMap::new())
         };
 
-        query.from(table.into());
+        let table = table.into();
+
+        query.from(table, Columns::All);
 
         query
     }
@@ -24,7 +32,9 @@ impl<'q, C> Query<'q, C>
         let mut query = Query::<C> {
             query_type: QueryType::Update,
             connector: connector,
-            tables: From::only_one(table.into())
+
+            tables: From::only_one(table.into()),
+            columns: None
         };
 
         query
@@ -35,7 +45,9 @@ impl<'q, C> Query<'q, C>
         let mut query = Query::<C> {
             query_type: QueryType::Delete,
             connector: connector,
-            tables: From::only_one(table.into())
+
+            tables: From::only_one(table.into()),
+            columns: None
         };
 
         query
@@ -58,16 +70,17 @@ impl<'q, C> Query<'q, C>
         self.query_type == QueryType::Delete
     }
 
-    /// # Query Datas
+    /// # Set Datas
 
-    pub fn tables(&self) -> &From<'q> {
-        &self.tables
-    }
+    pub fn from<T: Into<Table<'q>>>
+        (&mut self, table: T, columns: Columns<'q>) -> bool {
 
-    pub fn from<T: Into<Table<'q>>>(&mut self, table: T) -> bool {
+        let table = Rc::new(table.into());
+
         match self.tables {
-            From::List(ref mut map) => {
-                (*map).push(table.into());
+            From::List(ref mut tables) => {
+                self.columns.as_mut().unwrap().insert(Rc::clone(&table), columns);
+                (*tables).push(table);
             },
             _ => return false
         }
@@ -75,25 +88,31 @@ impl<'q, C> Query<'q, C>
         true
     }
 
+    /// # Get Datas
+
+    // pub fn tables(&self) -> &From<'q> {
+    //     &self.tables
+    // }
+
     /// # Formatting
 
     fn format_select(&self) -> String {
         self.connector.print_select(
-            String::from("*"),
-            formatters::format_tables(self.connector, &self.tables)
+            "*",
+            &formatters::format_tables(self.connector, &self.tables)
         )
     }
 
     fn format_update(&self) -> String {
         self.connector.print_update(
-            formatters::format_tables(self.connector, &self.tables),
-            String::from("1=1")
+            &formatters::format_tables(self.connector, &self.tables),
+            "1=1"
         )
     }
 
     fn format_delete(&self) -> String {
         self.connector.print_delete(
-            formatters::format_tables(self.connector, &self.tables)
+            &formatters::format_tables(self.connector, &self.tables)
         )
     }
 
@@ -117,8 +136,8 @@ mod test {
     use ::hr::Hr;
     use ::{
         Connector,
+        types::*
         // Query,
-        // types::*;
     };
 
     #[test]
@@ -127,7 +146,7 @@ mod test {
         let mut select = c.select("my_table");
 
         assert!(select.is_select(), "should be QueryType::Select");
-        assert!(select.from(""), "should be able to add table to Select");
+        assert!(select.from("", Columns::All), "should be able to add table to Select");
     }
 
     #[test]
@@ -136,7 +155,7 @@ mod test {
         let mut update = c.update("my_table");
 
         assert!(update.is_update(), "should be QueryType::Update");
-        assert!(!update.from(""), "can't add a new table to an Update");
+        assert!(!update.from("", Columns::All), "can't add a new table to an Update");
     }
 
     #[test]
@@ -145,7 +164,7 @@ mod test {
         let mut delete = c.delete("my_table");
 
         assert!(delete.is_delete(), "should be QueryType::Delete");
-        assert!(!delete.from(""), "can't add a new table to Delete");
+        assert!(!delete.from("", Columns::All), "can't add a new table to Delete");
     }
 
     #[test]

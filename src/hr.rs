@@ -18,20 +18,34 @@ use ::{
 pub struct Hr {}
 
 impl<'q> Connector<'q> for Hr {
-    fn print_select(&self, columns: String, tables: String) -> String {
+    fn print_select(&self, columns: &str, tables: &str) -> String {
         format!(
-            "SELECT\r\n\t{}\r\nFROM\r\n\t{}",
+"SELECT
+\t{}
+FROM
+\t{}",
             columns,
             tables,
         )
     }
 
-    fn print_update(&self, table: String, values: String) -> String {
-        format!("UPDATE\r\n\t{}\r\nSET\r\n\t{}", table, values)
+    fn print_update(&self, table: &str, values: &str) -> String {
+        format!(
+"UPDATE
+\t{}
+SET
+\t{}",
+            table,
+            values
+        )
     }
 
-    fn print_delete(&self, table: String) -> String {
-        format!("DELETE FROM\r\n\t{}", table)
+    fn print_delete(&self, table: &str) -> String {
+        format!(
+"DELETE FROM
+\t{}",
+            table
+        )
     }
 }
 
@@ -48,13 +62,13 @@ mod test {
         assert_eq!(
             Hr::print_select(
                 &hr,
-                "columns_list".to_owned(),
-                "table, list".to_owned()
+                "columns_list",
+                "table, list"
             ),
-            "SELECT\r\n\
-                \tcolumns_list\r\n\
-            FROM\r\n\
-                \ttable, list"
+"SELECT
+\tcolumns_list
+FROM
+\ttable, list"
         );
     }
 
@@ -64,13 +78,14 @@ mod test {
         assert_eq!(
             Hr::print_update(
                 &hr,
-                "table AS t".to_owned(),
-                "foo='bar'\r\n1=1".to_owned()
+                "table AS t",
+                "foo='bar',\n\t1=1"
             ),
-            "UPDATE\r\n\
-                \ttable AS t\r\n\
-            SET\r\n\
-                \tfoo='bar'\r\n1=1"
+"UPDATE
+\ttable AS t
+SET
+\tfoo='bar',
+\t1=1"
         );
     }
 
@@ -80,10 +95,10 @@ mod test {
         assert_eq!(
             Hr::print_delete(
                 &hr,
-                "deleting".to_owned()
+                "deleting"
             ),
-            "DELETE FROM\r\n\
-                \tdeleting"
+"DELETE FROM
+\tdeleting"
         );
     }
 }

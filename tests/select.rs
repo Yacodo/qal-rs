@@ -11,10 +11,10 @@ fn select_all(){
 
     assert_eq!(
         c.select("my_table").to_string(),
-        "SELECT\r\n\
-            \t*\r\n\
-        FROM\r\n\
-            \t\"my_table\""
+"SELECT
+\t*
+FROM
+\tmy_table"
     );
 }
 
@@ -22,26 +22,28 @@ fn select_all(){
 fn select_from_two_tables(){
     let c = Hr{};
     let mut select = c.select("xyz");
-    select.from("abc");
+    select.from("abc", Columns::All);
 
     assert_eq!(
         select.to_string(),
-        "SELECT\r\n\
-            \t*\r\n\
-        FROM\r\n\
-            \t\"xyz\", \"abc\""
+"SELECT
+\t*
+FROM
+\txyz,
+\tabc"
     );
 
 
     let mut select = c.select("abc");
-    select.from("xyz");
+    select.from("xyz", Columns::All);
 
     assert_eq!(
         select.to_string(),
-        "SELECT\r\n\
-            \t*\r\n\
-        FROM\r\n\
-            \t\"abc\", \"xyz\""
+"SELECT
+\t*
+FROM
+\tabc,
+\txyz"
     );
 }
 
@@ -50,25 +52,30 @@ fn select_from_two_tables_one_alias(){
     let c = Hr{};
     let mut select = c.select("xyz");
 
-    select.from(Table::Alias("abc", "t2"));
+    select.from(
+        Table::Alias("abc", "t2"),
+        Columns::All
+    );
 
     assert_eq!(
         select.to_string(),
-        "SELECT\r\n\
-            \t*\r\n\
-        FROM\r\n\
-            \t\"xyz\", \"abc\" AS t2"
+"SELECT
+\t*
+FROM
+\txyz,
+\tabc AS t2"
     );
 
     let mut select = c.select(Table::Alias("abc", "t1"));
 
-    select.from("xyz");
+    select.from("xyz", Columns::All);
 
     assert_eq!(
         select.to_string(),
-        "SELECT\r\n\
-            \t*\r\n\
-        FROM\r\n\
-            \t\"abc\" AS t1, \"xyz\""
+"SELECT
+\t*
+FROM
+\tabc AS t1,
+\txyz"
     );
 }

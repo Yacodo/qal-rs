@@ -12,7 +12,8 @@ pub struct Query<'q, C>
     query_type: QueryType,
     connector: &'q C,
 
-    tables: From<'q>
+    tables: From<'q>,
+    columns: Option<TableColumns<'q>>
 }
 
 pub trait Connector<'q> : FormatColumn<'q> + FormatTable<'q> {
@@ -39,19 +40,19 @@ pub trait Connector<'q> : FormatColumn<'q> + FormatTable<'q> {
 
     fn print_select(
         &self,
-        columns: String,
-        tables: String
+        columns: &str,
+        tables: &str
     ) -> String;
 
     fn print_update(
         &self,
-        table: String,
-        values: String
+        table: &str,
+        values: &str
     ) -> String;
 
     fn print_delete(
         &self,
-        table: String
+        table: &str
     ) -> String;
 
     // -- HR (Human Readability)

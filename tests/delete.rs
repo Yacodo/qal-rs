@@ -10,7 +10,7 @@ fn delete_all(){
     let c = Hr{};
     assert_eq!(
         c.delete("my_table").to_string(),
-        "DELETE FROM\r\n\
-            \t\"my_table\""
+"DELETE FROM
+\tmy_table"
     );
 }

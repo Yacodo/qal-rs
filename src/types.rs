@@ -1,8 +1,10 @@
 use std::{
     cmp,
     convert,
-    //iter,
-    hash::{Hash, Hasher}
+    //iter, Consider
+    rc::Rc,
+    // hash::{Hash, Hasher}, useless now
+    collections::HashMap
 };
 
 #[derive(Debug, PartialEq)]
@@ -20,12 +22,25 @@ pub enum JoinType {
     //TODO MOAR
 }
 
+pub trait Aliasable<'a> {
+    fn identifier(&self) -> &'a str;
+}
+
 /// # Table
 
 #[derive(Debug, Hash)]
 pub enum Table<'a> {
     Alias(&'a str, &'a str),
     Name(&'a str)
+}
+
+impl<'a> Aliasable<'a> for Table<'a> {
+    fn identifier(&self) -> &'a str {
+        match self {
+            Table::Alias(_, alias) => alias,
+            Table::Name(name) => name
+        }
+    }
 }
 
 impl<'a> cmp::PartialEq for Table<'a> {
@@ -55,21 +70,15 @@ impl<'a> cmp::PartialEq for Table<'a> {
 
 impl<'a> cmp::Eq for Table<'a> {}
 
-//TODO reput From instead of Into ? if possible
-// impl<'a> convert::From<&'static str> for Table<'a> {
-//     fn from(table: &'static str) -> Self {
-//         Table::Name(table)
-//     }
-// }
-
 impl<'a> convert::Into<Table<'a>> for &'static str {
     fn into(self) -> Table<'a> {
         Table::Name(self)
     }
 }
 
-/// # TableRef
-pub type TableList<'a> = Vec<Table<'a>>;
+/// # From
+
+pub type TableList<'a> = Vec<Rc<Table<'a>>>;
 
 #[derive(Debug)]
 pub enum From<'a> {
@@ -112,27 +121,21 @@ impl<'a> From<'a> {
     }
 }
 
-// impl<'a> Hash for From<'a> {
-//     fn hash<H: Hasher>(&self, state: &mut H) {
-//         match self {
-//             From::List(tables) => {
-//                 for table in tables {
-//                     table.hash(state);
-//                 }
-//             },
-//             From::One(table) => {
-//                 table.hash(state);
-//             }
-//         };
-//     }
-// }
-
 /// # Column
 
 #[derive(Debug, Hash)]
 pub enum Column<'a> {
     Alias(&'a str, &'a str),
     Name(&'a str)
+}
+
+impl<'a> Aliasable<'a> for Column<'a> {
+    fn identifier(&self) -> &'a str {
+        match self {
+            Column::Alias(_, alias) => alias,
+            Column::Name(name) => name
+        }
+    }
 }
 
 impl<'a> cmp::PartialEq for Column<'a> {
@@ -154,8 +157,6 @@ impl<'a> cmp::PartialEq for Column<'a> {
             }
         }
 
-        //TODO: is there a better way
-        //Forced result since we use if let
         false
     }
 }
@@ -168,4 +169,78 @@ impl<'a> convert::From<&'static str> for Column<'a> {
     }
 }
 
-pub type ColumnList<'a> = Vec<Column<'a>>;
+/// # ColumnList
+
+pub type ColumnList<'cl> = Vec<Column<'cl>>;
+pub type TableColumns<'tc> = HashMap<Rc<Table<'tc>>, Columns<'tc>>;
+
+pub enum Columns<'c> {
+    List(ColumnList<'c>),
+    All
+}
+
+impl<'c> Columns<'c> {
+    /// Create a new Columns list
+    ///
+    /// ````
+    /// use qal::types::Columns;
+    /// let columns = Columns::new_list();
+    /// assert!(columns.is_list());
+    /// assert!(columns.len() == 0);
+    /// ````
+    pub fn new_list() -> Self {
+        Columns::List(Vec::new())
+    }
+
+    /// Check if a Columns type is a list
+    ///
+    /// ````
+    /// use qal::types::Columns;
+    /// let columns = Columns::new_list();
+    /// assert!(columns.is_list());
+    /// ````
+    pub fn is_list(&self) -> bool{
+        if let Columns::List(_) = self {
+            return true
+        }
+
+        false
+    }
+
+    /// Check if a Columns type is All
+    ///
+    /// ````
+    /// use qal::types::Columns;
+    /// let columns = Columns::All;
+    /// assert!(columns.is_all());
+    /// ````
+    pub fn is_all(&self) -> bool{
+        if let Columns::All = self {
+            return true
+        }
+
+        false
+    }
+
+    /// Check len of columns
+    ///
+    /// ````
+    /// use qal::types::Columns;
+    /// let columns = Columns::new_list();
+    /// assert!(columns.len() == 0);
+    /// ````
+    ///
+    /// In case of `Columns::All` it will be of len "1" (-> translate as one column)
+    ///
+    /// ````
+    /// use qal::types::Columns;
+    /// let columns = Columns::All;
+    /// assert!(columns.len() == 1);
+    /// ````
+    pub fn len(&self) -> usize {
+        match self {
+            Columns::List(columns) => columns.len(),
+            _ => 1
+        }
+    }
+}
