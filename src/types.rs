@@ -2,8 +2,7 @@ use std::{
     cmp,
     convert,
     //iter,
-    collections::HashMap,
-    hash::{Hash, Hasher},
+    hash::{Hash, Hasher}
 };
 
 #[derive(Debug, PartialEq)]
@@ -56,6 +55,7 @@ impl<'a> cmp::PartialEq for Table<'a> {
 
 impl<'a> cmp::Eq for Table<'a> {}
 
+//TODO reput From instead of Into ? if possible
 // impl<'a> convert::From<&'static str> for Table<'a> {
 //     fn from(table: &'static str) -> Self {
 //         Table::Name(table)
@@ -67,6 +67,65 @@ impl<'a> convert::Into<Table<'a>> for &'static str {
         Table::Name(self)
     }
 }
+
+/// # TableRef
+pub type TableList<'a> = Vec<Table<'a>>;
+
+#[derive(Debug)]
+pub enum From<'a> {
+    List(TableList<'a>),
+    One(Table<'a>)
+}
+
+impl<'a> From<'a> {
+    pub fn new_list() -> Self {
+        From::List(Vec::new())
+    }
+
+    pub fn only_one(table: Table<'a>) -> Self {
+        From::One(table)
+    }
+
+    // pub fn columns_list() -> ColumnList<'a> {
+    //     Vec::<Column<'a>>::new()
+    // }
+
+    pub fn len(&self) -> usize {
+        match self {
+            From::List(tables) => tables.len(),
+            From::One(_) => 1
+        }
+    }
+
+    pub fn get_list(&'a mut self) -> Result<&'a mut TableList<'a>, bool> {
+        match self {
+            From::List(ref mut tables) => Ok(tables),
+            _ => return Err(false)
+        }
+    }
+
+    pub fn get_table(&'a self) -> Result<&Table<'a>, bool> {
+        match self {
+            From::One(ref table) => Ok(table),
+            _ => return Err(false)
+        }
+    }
+}
+
+// impl<'a> Hash for From<'a> {
+//     fn hash<H: Hasher>(&self, state: &mut H) {
+//         match self {
+//             From::List(tables) => {
+//                 for table in tables {
+//                     table.hash(state);
+//                 }
+//             },
+//             From::One(table) => {
+//                 table.hash(state);
+//             }
+//         };
+//     }
+// }
 
 /// # Column
 
@@ -109,62 +168,4 @@ impl<'a> convert::From<&'static str> for Column<'a> {
     }
 }
 
-/// # TableRef
 pub type ColumnList<'a> = Vec<Column<'a>>;
-pub type TableList<'a> = HashMap<Table<'a>, ColumnList<'a>>;
-
-#[derive(Debug)]
-pub enum From<'a> {
-    List(Vec<Table<'a>>),
-    One(Table<'a>)
-}
-
-impl<'a> From<'a> {
-    pub fn new_list() -> Self {
-        From::List(Vec::new())
-    }
-
-    pub fn only_one(table: Table<'a>) -> Self {
-        From::One(table)
-    }
-
-    // pub fn columns_list() -> ColumnList<'a> {
-    //     Vec::<Column<'a>>::new()
-    // }
-
-    pub fn len(&self) -> usize {
-        match self {
-            From::List(tables) => tables.len(),
-            From::One(_) => 1
-        }
-    }
-
-    pub fn get_list(&'a mut self) -> Result<&'a mut Vec<Table<'a>>, bool> {
-        match self {
-            From::List(ref mut tables) => Ok(tables),
-            _ => return Err(false)
-        }
-    }
-
-    pub fn get_table(&'a self) -> Result<&Table<'a>, bool> {
-        match self {
-            From::One(ref table) => Ok(table),
-            _ => return Err(false)
-        }
-    }
-}
-
-impl<'a> Hash for From<'a> {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        match self {
-            From::List(tables) => {
-                for table in tables {
-                    table.hash(state);
-                }
-            },
-            From::One(table) => {
-                table.hash(state);
-            }
-        };
-    }
-}

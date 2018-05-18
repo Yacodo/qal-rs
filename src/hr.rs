@@ -6,9 +6,15 @@ use ::{
 /// # Human Readable SQL
 ///
 /// Primarily use for QAL Testing
+///
 /// It is not following any SQL standard in particular
 ///
 /// It can be used for debugging your own sql queries.
+///
+/// ## Testing
+///
+/// - Unit tests of this represent specific behavior
+/// - Integration tests check for use of implementation in general
 pub struct Hr {}
 
 impl<'q> Connector<'q> for Hr {

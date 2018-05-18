@@ -80,6 +80,17 @@ mod test {
     use ::hr::Hr;
     // use ::Connector;
     use ::types::*;
+    use super::FormatTable;
+
+    #[test]
+    fn format_table_quoting(){
+        let c = Hr{};
+
+        assert_eq!(
+            FormatTable::quote(&c, "hello"),
+            "\"hello\""
+        );
+    }
 
     #[test]
     fn format_table(){
