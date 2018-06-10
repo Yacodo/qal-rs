@@ -1,0 +1,36 @@
+Finally trying to get a clear view of what the API should do:
+
+select()
+  .from("hello") -> Query
+  .new_from("hello") -> Columns
+
+  .columns("hello", )
+
+--------
+update(table)
+  .set()
+--------
+delete(table)
+
+
+-----------------------------
+-----------------------------
+
+Add table :
+select.from("") -> columns_list
+
+
+-----------------------------
+-----------------------------
+
+Columns :
+
+let list = Columns::All;
+
+let list = Columns::new_list()
+  .add("str")
+  .add("str")
+  .add_vec(...);
+
+let list = Columns::from_vec(vec)
+  .add(...);
