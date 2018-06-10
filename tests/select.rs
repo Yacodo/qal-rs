@@ -7,10 +7,10 @@ use qal::hr::Hr;
 
 #[test]
 fn select_all(){
-    let c = Hr{};
+    let hr = Hr{};
 
     assert_eq!(
-        c.select("my_table").to_string(),
+        hr.select("my_table").to_string(),
 "SELECT
 \t*
 FROM
@@ -20,9 +20,9 @@ FROM
 
 #[test]
 fn select_from_two_tables(){
-    let c = Hr{};
-    let mut select = c.select("xyz");
-    select.from("abc", Columns::All);
+    let hr = Hr{};
+    let mut select = hr.select("xyz");
+    select.from("abc");
 
     assert_eq!(
         select.to_string(),
@@ -34,8 +34,8 @@ FROM
     );
 
 
-    let mut select = c.select("abc");
-    select.from("xyz", Columns::All);
+    let mut select = hr.select("abc");
+    select.from("xyz");
 
     assert_eq!(
         select.to_string(),
@@ -49,13 +49,10 @@ FROM
 
 #[test]
 fn select_from_two_tables_one_alias(){
-    let c = Hr{};
-    let mut select = c.select("xyz");
+    let hr = Hr{};
+    let mut select = hr.select("xyz");
 
-    select.from(
-        Table::Alias("abc", "t2"),
-        Columns::All
-    );
+    select.from(Table::Alias("abc", "t2"));
 
     assert_eq!(
         select.to_string(),
@@ -66,9 +63,9 @@ FROM
 \tabc AS t2"
     );
 
-    let mut select = c.select(Table::Alias("abc", "t1"));
+    let mut select = hr.select(Table::Alias("abc", "t1"));
 
-    select.from("xyz", Columns::All);
+    select.from("xyz");
 
     assert_eq!(
         select.to_string(),
@@ -78,4 +75,17 @@ FROM
 \tabc AS t1,
 \txyz"
     );
+}
+
+#[test]
+fn select_multiples_columns(){
+    let hr = Hr{};
+
+    let table = Table::Alias("my_table", "t");
+    let mut select = hr.select(table);
+
+    // let columns = select.columns();
+    //     columns.add();
+    //     columns.add();
+
 }

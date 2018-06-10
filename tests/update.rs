@@ -7,9 +7,9 @@ use qal::hr::Hr;
 
 #[test]
 fn update_empty(){
-    let c = Hr{};
+    let hr = Hr{};
     assert_eq!(
-        c.update("my_table").to_string(),
+        hr.update("my_table").to_string(),
 "UPDATE
 \tmy_table
 SET

@@ -7,9 +7,9 @@ use qal::hr::Hr;
 
 #[test]
 fn delete_all(){
-    let c = Hr{};
+    let hr = Hr{};
     assert_eq!(
-        c.delete("my_table").to_string(),
+        hr.delete("my_table").to_string(),
 "DELETE FROM
 \tmy_table"
     );
